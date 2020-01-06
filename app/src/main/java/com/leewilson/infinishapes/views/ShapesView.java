@@ -19,7 +19,7 @@ import java.util.Random;
 public class ShapesView extends View {
 
     /*
-    TODO: Implement method to determine whether there is any uncovered space when a shape vacates its position
+
     TODO: Tweak move touch event handling to make sure shapes can be moved by their edges instead of being
         shunted instantly to the touch event coords
      */
@@ -28,6 +28,7 @@ public class ShapesView extends View {
     private LinkedList<Integer> mColors;
     private Paint mPaint;
     private Display mDisplay;
+    private boolean mIsShapeMoved = false;
 
     private static final int SQUARE_RADIUS = 300;
     private static final int NO_SHAPE_FOUND = -1;
@@ -68,6 +69,7 @@ public class ShapesView extends View {
 
         switch(event.getActionMasked()) {
 
+            // In case some empty space shows (in theory there shouldn't be any).
             case MotionEvent.ACTION_DOWN:
 
                 if(getTouchedRectIndex(touchX, touchY) == NO_SHAPE_FOUND) {
@@ -83,10 +85,22 @@ public class ShapesView extends View {
 
                 final int newX = (int) event.getX();
                 final int newY = (int) event.getY();
-                final int touchedShapeIndex = getTouchedRectIndex(touchX, touchY);
+                int touchedShapeIndex = getTouchedRectIndex(touchX, touchY);
+                boolean isMoved = false;
 
 
                 if(touchedShapeIndex != NO_SHAPE_FOUND) {
+
+                    // Generate shape at the bottom of the pile where this one was removed
+                    if(!mIsShapeMoved) {
+                        // Increment index of touched shape
+                        touchedShapeIndex++;
+
+                        mShapes.addFirst(defineRectFromCoords(touchX, touchY));
+                        mColors.addFirst(getRandomColor());
+                        mIsShapeMoved = true;
+                    }
+
                     mShapes.remove(touchedShapeIndex);
                     int colorOfMovedShape = mColors.get(touchedShapeIndex);
                     mColors.remove(touchedShapeIndex);
@@ -94,7 +108,16 @@ public class ShapesView extends View {
                     mShapes.add(movedRectangle);
                     mColors.add(colorOfMovedShape);
                 }
+
                 invalidate();
+                handled = true;
+                break;
+
+            case MotionEvent.ACTION_UP:
+
+                // Reset flag for next move
+                mIsShapeMoved = false;
+
                 handled = true;
                 break;
         }
