@@ -1,15 +1,14 @@
 package com.leewilson.infinishapes;
 
+import android.graphics.RectF;
+import android.os.Bundle;
+import android.view.Display;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.graphics.Point;
-import android.graphics.Rect;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.Display;
-
 import com.leewilson.infinishapes.views.ShapesView;
+
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -23,26 +22,21 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mView = findViewById(R.id.shapes_view);
         mDisplay = getWindowManager().getDefaultDisplay();
 
-        if(savedInstanceState != null) {
+        if (savedInstanceState != null) {
             mView.setColors(savedInstanceState.getIntegerArrayList(EXTRA_COLORS));
-            mView.setShapes(savedInstanceState.<Rect>getParcelableArrayList(EXTRA_SHAPES));
+            mView.setShapes(savedInstanceState.<RectF>getParcelableArrayList(EXTRA_SHAPES));
         } else {
             mView.setColors(new ArrayList<Integer>());
-            mView.setShapes(new ArrayList<Rect>());
+            mView.setShapes(new ArrayList<RectF>());
         }
 
         mView.setDisplay(mDisplay);
-
-        // Temp. For getting the screen size.
-        Display screen = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        screen.getSize(size);
-        Log.d(LOG_TAG, String.format("Screen: %s wide and %s high.", size.x, size.y));
     }
 
     @Override

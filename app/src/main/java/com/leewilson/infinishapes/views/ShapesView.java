@@ -5,12 +5,14 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
-import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+
 import androidx.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -24,7 +26,7 @@ public class ShapesView extends View {
         shunted instantly to the touch event coords
      */
 
-    private LinkedList<Rect> mShapes;
+    private LinkedList<RectF> mShapes;
     private LinkedList<Integer> mColors;
     private Paint mPaint;
     private Display mDisplay;
@@ -32,7 +34,6 @@ public class ShapesView extends View {
 
     private static final int SQUARE_RADIUS = 300;
     private static final int NO_SHAPE_FOUND = -1;
-
 
     public ShapesView(Context context) {
         super(context);
@@ -63,17 +64,17 @@ public class ShapesView extends View {
 
         boolean handled = false;
 
-        final int touchX = (int) event.getX();
-        final int touchY = (int) event.getY();
+        final float touchX = event.getX();
+        final float touchY = event.getY();
 
 
-        switch(event.getActionMasked()) {
+        switch (event.getActionMasked()) {
 
             // In case some empty space shows (in theory there shouldn't be any).
             case MotionEvent.ACTION_DOWN:
 
-                if(getTouchedRectIndex(touchX, touchY) == NO_SHAPE_FOUND) {
-                    Rect newShape = new Rect(defineRectFromCoords(touchX, touchY));
+                if (getTouchedRectIndex(touchX, touchY) == NO_SHAPE_FOUND) {
+                    RectF newShape = new RectF(defineRectFromCoords(touchX, touchY));
                     mShapes.add(newShape);
                     mColors.add(getRandomColor());
                 }
@@ -86,13 +87,12 @@ public class ShapesView extends View {
                 final int newX = (int) event.getX();
                 final int newY = (int) event.getY();
                 int touchedShapeIndex = getTouchedRectIndex(touchX, touchY);
-                boolean isMoved = false;
 
 
-                if(touchedShapeIndex != NO_SHAPE_FOUND) {
+                if (touchedShapeIndex != NO_SHAPE_FOUND) {
 
                     // Generate shape at the bottom of the pile where this one was removed
-                    if(!mIsShapeMoved) {
+                    if (!mIsShapeMoved) {
                         // Increment index of touched shape
                         touchedShapeIndex++;
 
@@ -104,7 +104,7 @@ public class ShapesView extends View {
                     mShapes.remove(touchedShapeIndex);
                     int colorOfMovedShape = mColors.get(touchedShapeIndex);
                     mColors.remove(touchedShapeIndex);
-                    final Rect movedRectangle = defineRectFromCoords(newX, newY);
+                    final RectF movedRectangle = defineRectFromCoords(newX, newY);
                     mShapes.add(movedRectangle);
                     mColors.add(colorOfMovedShape);
                 }
@@ -129,8 +129,7 @@ public class ShapesView extends View {
     protected void onDraw(Canvas canvas) {
         for (int i = 0; i < mShapes.size(); i++) {
             mPaint.setColor(mColors.get(i));
-
-            canvas.drawRect(mShapes.get(i), mPaint);
+            canvas.drawRoundRect(mShapes.get(i), 20f, 20f, mPaint);
         }
     }
 
@@ -166,13 +165,14 @@ public class ShapesView extends View {
 
     /**
      * Helper method for scatterShapes() to provide an offset value to simulate random scattering.
+     *
      * @return Random offset number with limitations applied
      */
     private int randomScatterOffset() {
         final int randomOffsetLimit = SQUARE_RADIUS / 2;
         final Random random = new Random();
         final int randomOffset = random.nextInt(randomOffsetLimit);
-        if(random.nextInt(10) % 2 == 0) {
+        if (random.nextInt(10) % 2 == 0) {
             return randomOffset;
         } else {
             return 0 - randomOffset;
@@ -180,17 +180,17 @@ public class ShapesView extends View {
     }
 
     /**
-     *Defines a new rectangle based on the coordinates provided.
+     * Defines a new rectangle based on the coordinates provided.
      *
      * @param x
      * @param y
      * @return new Rect object with defined properties
      */
-    private Rect defineRectFromCoords(float x, float y) {
-        return new Rect(/*left*/    (int) (x - SQUARE_RADIUS),
-                /*top*/     (int) (y - SQUARE_RADIUS),
-                /*right*/   (int) (x + SQUARE_RADIUS),
-                /*bottom*/  (int) (y + SQUARE_RADIUS));
+    private RectF defineRectFromCoords(float x, float y) {
+        return new RectF(/*left*/    (x - SQUARE_RADIUS),
+                /*top*/     (y - SQUARE_RADIUS),
+                /*right*/   (x + SQUARE_RADIUS),
+                /*bottom*/  (y + SQUARE_RADIUS));
     }
 
     /**
@@ -201,9 +201,9 @@ public class ShapesView extends View {
      * @param touchY
      * @return index
      */
-    private int getTouchedRectIndex(final int touchX, final int touchY) {
+    private int getTouchedRectIndex(final float touchX, final float touchY) {
         for (int i = mShapes.size() - 1; i >= 0; i--) {
-            if(mShapes.get(i).contains(touchX, touchY)) {
+            if (mShapes.get(i).contains(touchX, touchY)) {
                 return i;
             }
         }
@@ -217,11 +217,11 @@ public class ShapesView extends View {
 
     public void setDisplay(Display display) {
         mDisplay = display;
-        if(mShapes.isEmpty())
+        if (mShapes.isEmpty())
             scatterShapes();
     }
 
-    public ArrayList<Rect> getShapes() {
+    public ArrayList<RectF> getShapes() {
         return new ArrayList<>(mShapes);
     }
 
@@ -229,7 +229,7 @@ public class ShapesView extends View {
         return new ArrayList<>(mColors);
     }
 
-    public void setShapes(ArrayList<Rect> shapes) {
+    public void setShapes(ArrayList<RectF> shapes) {
         mShapes = new LinkedList<>(shapes);
     }
 
